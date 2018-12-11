@@ -1244,7 +1244,8 @@ class ElastAlerter():
             lookup_es_key(match, rule['timestamp_field']),
             rule.get('kibana4_end_timedelta', rule.get('timeframe', datetime.timedelta(minutes=10)))
         )
-        return kibana.kibana4_dashboard_link(db_name, start, end)
+        query = kibana.get_query(rule, match)
+        return kibana.kibana4_dashboard_link(db_name, start, end, query)
 
     def generate_kibana_db(self, rule, match):
         ''' Uses a template dashboard to upload a temp dashboard showing the match.

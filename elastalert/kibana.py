@@ -170,6 +170,7 @@ dashboard_temp = {'editable': True,
                   u'title': u'ElastAlert Alert Dashboard'}
 
 kibana4_time_temp = "(refreshInterval:(display:Off,section:0,value:0),time:(from:'%s',mode:absolute,to:'%s'))"
+kibana4_query_temp = "(query:(language:lucene,query:'%s'))"
 
 
 def set_time(dashboard, start, end):
@@ -278,8 +279,35 @@ def filters_from_dashboard(db):
     return config_filters
 
 
-def kibana4_dashboard_link(dashboard, starttime, endtime):
+def kibana4_dashboard_link(dashboard, starttime, endtime, query=None):
     dashboard = os.path.expandvars(dashboard)
     time_settings = kibana4_time_temp % (starttime, endtime)
     time_settings = urllib.quote(time_settings)
-    return "%s?_g=%s" % (dashboard, time_settings)
+    if query:
+        query_settings = kibana4_query_temp % (query)
+        query_settings = urllib.quote(query_settings)
+        url = "%s?_g=%s&_a=%s" % (dashboard, time_settings, query_settings)
+    else:
+        url = "%s?_g=%s" % (dashboard, time_settings)
+    return url
+
+def get_query(rule, match):
+    query = ''
+    query_operator = ' OR '
+    if 'query_key' in rule:
+        for qk in rule.get('compound_query_key', [rule['query_key']]):
+            if qk in match:
+                add_query = 'match_body.%s:"%s"' % (qk, match[qk])
+            if query:
+                query += query_operator
+            query += add_query
+
+    if 'aggregation_key' in rule:
+        for qk in rule.get('compound_aggregation_key', [rule['aggregation_key']]):
+            if qk in match:
+                add_query = 'match_body.%s:"%s"' % (qk, match[qk])
+            if query:
+                query += query_operator
+            query += add_query
+
+    return query

@@ -293,7 +293,7 @@ def kibana4_dashboard_link(dashboard, starttime, endtime, query=None):
 
 def get_query(rule, match):
     query = ''
-    query_operator = 'OR'
+    query_operator = ' OR '
     if 'query_key' in rule:
         for qk in rule.get('compound_query_key', [rule['query_key']]):
             if qk in match:
